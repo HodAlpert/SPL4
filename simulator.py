@@ -26,7 +26,7 @@ class _Simulator:
 
     def getAllFinishedTasks(self):
         return self.cursor.execute("""
-                SELECT task_name, worker_id, time_to_make FROM tasks WHERE time_to_make=0
+                SELECT id, worker_id FROM tasks WHERE time_to_make=0
                 """).fetchall()
 
     def updateWorkerStatus(self,workerId, status):
@@ -54,7 +54,6 @@ class _Simulator:
         workerId = self.cursor.fetch()
         self.updateWorkerStatus(self,workerId,"idle")
         self.deleteTask(self,taskid)
-
         self.cursor.execute("""
                                 SELECT name FROM workers WHERE id=(?)
                                 """, (workerId))
@@ -64,6 +63,20 @@ class _Simulator:
 
     def isTasksNotEmpty(self):
         return len(self.occupiedTasks)!=0
+    def main(self):
+        if os.path.isfile("world.db"):
+            s = _Simulator()
+            while s.isFileExist() and s.isTasksNotEmpty():
+                tasks = s.getAllTasks()
+                for task in tasks:
+                    if s.isTaskOccupied(task[0]):
+                        s.reduce(task[0])
+                    elif s.isWorkerBusy(task[1]):
+                        s.assign(task[0])
+                finishedTasks = s.getAllFinishedTasks()
+                for task in finishedTasks:
+                    s.finishTask(task[0])
+
 
 
 
