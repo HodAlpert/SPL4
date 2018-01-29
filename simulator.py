@@ -17,8 +17,8 @@ class _Simulator:
         SELECT id, task_name, worker_id, time_to_make FROM tasks
         """).fetchall()
 # checks if task is currently performed by worker
-    def isTaskOccupied(self, taskname):
-        return taskname in self.occupiedTasks
+    def isTaskOccupied(self, taskid):
+        return taskid in self.occupiedTasks
 # checks if worker status is Idle
     def isWorkerIdle(self, workerId):
         status=self.cursor.execute("""
@@ -39,14 +39,46 @@ class _Simulator:
 
 # assume there is more then one step left for task, assume worker in working on task
     def reduce(self,taskid):
+        # get the worker of this task
+        self.cursor.execute("""
+                        SELECT worker_id FROM tasks WHERE id=(?)
+                        """, (taskid))
+        workerId = self.cursor.fetch()
+        # get current time_to_make of the task
+        self.cursor.execute("""
+                                SELECT time_to_make FROM tasks WHERE id=(?)
+                                """, (taskid))
+        time_to_make = self.cursor.fetch()
+        # reduce time_to_make by one
+        self.conn.execute("UPDATE workers SET time_to_make=(?) WHERE id=(?)", (time_to_make-1, workerId))
+
+        # get worker name
+        self.cursor.execute("""
+                               SELECT name FROM workers WHERE id=(?)
+                               """, (workerId))
+        workerName = self.cursor.fetch()
+        self.cursor.execute("""
+                        SELECT task_name FROM tasks WHERE id=(?)
+                        """, (taskid))
+        taskName = self.cursor.fetch()
+
+        print(workerName+" is busy "+taskName)
 
 # assume worker is idle
     def assign(self, taskid):
+        #add taskid occupiedTasks
+        self.occupiedTasks.append(self,taskid)
+
         self.cursor.execute("""
-                SELECT worker_id FROM tasks WHERE id=(?)
-                """, (taskid))
+                                SELECT worker_id FROM tasks WHERE id=(?)
+                                """, (taskid))
         workerId = self.cursor.fetch()
-        self.occupiedTasks.append(self,workerId)
+        self.cursor.execute("""
+                        SELECT name FROM workers WHERE id=(?)
+                        """, (workerId))
+        workerName = self.cursor.fetch()
+
+        print(workerName+" says: work work")
 
 # assume 0 steps left for task
     def finishTask(self, taskid):
@@ -56,6 +88,7 @@ class _Simulator:
         workerId = self.cursor.fetch()
         self.updateWorkerStatus(self,workerId,"idle")
         self.deleteTask(self,taskid)
+
         self.cursor.execute("""
                                 SELECT name FROM workers WHERE id=(?)
                                 """, (workerId))
