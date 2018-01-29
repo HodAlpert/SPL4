@@ -49,7 +49,7 @@ class _Simulator:
         newTime = int(time_to_make[0]-1)
 
         # reduce time_to_make by one
-        self.conn.execute("UPDATE tasks SET time_to_make=(?) WHERE worker_id=(?)", (newTime, workerid))
+        self.conn.execute("UPDATE tasks SET time_to_make=(?) WHERE worker_id=(?)AND id=(?)", (newTime, workerid,taskid))
 
         # get worker name
         self.cursor.execute("""
@@ -103,22 +103,16 @@ def main():
     if os.path.isfile("world.db"):
         s = _Simulator()
         # atexit.register(s.close())
-        i=0
-        while s.isFileExist() and s.isTasksNotEmpty() and i<30:
+        while s.isFileExist() and s.isTasksNotEmpty():
             tasks = s.getAllTasks()
-            print("all tasks",tasks)
-            print("occupiedTasks",s.occupiedTasks)
-
             for task in tasks:
                 if s.isTaskOccupied(task[0]):
                     s.reduce(task[0],task[1])
                 elif s.isWorkerIdle(task[1]):
                     s.assign(task[0], task[1])
             finishedTasks = s.getAllFinishedTasks()
-            print("finishedTasks",finishedTasks)
             for task in finishedTasks:
                 s.finishTask(task[0])
-            i=i+1
         os.remove("world.db")
 
 if __name__ == '__main__':
