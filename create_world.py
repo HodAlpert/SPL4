@@ -2,7 +2,7 @@ import sqlite3
 import sys
 import os
 
-def     readFile(filename, cursor):
+def readFile(filename, cursor):
     taskId = 1
     filehandle = open(filename)
     for line in filehandle:

@@ -42,8 +42,12 @@ class _Simulator:
     def reduce(self,taskid, workerId):
 # assume worker is idle
     def assign(self, taskName):
+        self.occupiedTasks.append(self,)
 # assume 0 steps left for task
     def finishTask(self, taskName):
+
+
+    def isTasksNotEmpty(self, taskName):
 
 
 
