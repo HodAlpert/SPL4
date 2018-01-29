@@ -83,14 +83,14 @@ class _Simulator:
                         SELECT worker_id FROM tasks WHERE id=(?)
                         """, (taskid,))
         workerId = self.cursor.fetchone()
-        self.updateWorkerStatus(workerId,"idle")
+        self.updateWorkerStatus(workerId[0],"idle")
         self.deleteTask(taskid)
 
         self.cursor.execute("""
                                 SELECT name FROM workers WHERE id=(?)
-                                """, (workerId,))
+                                """, (workerId[0],))
         workerName = self.cursor.fetchone()
-        print(workerName+" says: All Done!")
+        print(workerName[0]+" says: All Done!")
 
 
     def isTasksNotEmpty(self):
@@ -104,7 +104,8 @@ def main():
     if os.path.isfile("world.db"):
         s = _Simulator()
         # atexit.register(s.close())
-        while s.isFileExist() and s.isTasksNotEmpty():
+        i=0
+        while s.isFileExist() and s.isTasksNotEmpty() and i<10:
             tasks = s.getAllTasks()
             for task in tasks:
                 if s.isTaskOccupied(task[0]):
@@ -114,6 +115,7 @@ def main():
             finishedTasks = s.getAllFinishedTasks()
             for task in finishedTasks:
                 s.finishTask(task[0])
+            i=i+1
         os.remove("world.db")
 
 if __name__ == '__main__':
