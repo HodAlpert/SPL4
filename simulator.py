@@ -1,34 +1,36 @@
 import os
 import sqlite3
+import atexit
+
 
 class _Simulator:
     def __init__(self):
          self.conn=sqlite3.connect("world.db")
          self.occupiedTasks = []
          self.cursor = self.conn().cursor()
-
+#checks if sql file exists
     def isFileExist(self):
         return os.path.isfile("world.db")
-
+#gets all tasks in tasks table
     def getAllTasks(self):
         return self.cursor.execute("""
         SELECT id, task_name, worker_id, time_to_make FROM tasks
         """).fetchall()
-
+# checks if task is currently performed by worker
     def isTaskOccupied(self, taskname):
         return taskname in self.occupiedTasks
-
-    def isWorkerBusy(self, workerId):
+# checks if worker status is Idle
+    def isWorkerIdle(self, workerId):
         status=self.cursor.execute("""
             SELECT status FROM workers WHERE id=(?)
             """, [workerId]).fetchone()
         return status == "idle"
-
+#returns all finished tasks
     def getAllFinishedTasks(self):
         return self.cursor.execute("""
                 SELECT id, worker_id FROM tasks WHERE time_to_make=0
                 """).fetchall()
-
+# update worker status
     def updateWorkerStatus(self,workerId, status):
         self.conn.execute("UPDATE workers SET status=(?) WHERE id=(?)",[status,workerId])
 
@@ -63,19 +65,28 @@ class _Simulator:
 
     def isTasksNotEmpty(self):
         return len(self.occupiedTasks)!=0
-    def main(self):
-        if os.path.isfile("world.db"):
-            s = _Simulator()
-            while s.isFileExist() and s.isTasksNotEmpty():
-                tasks = s.getAllTasks()
-                for task in tasks:
-                    if s.isTaskOccupied(task[0]):
-                        s.reduce(task[0])
-                    elif s.isWorkerBusy(task[1]):
-                        s.assign(task[0])
-                finishedTasks = s.getAllFinishedTasks()
-                for task in finishedTasks:
-                    s.finishTask(task[0])
+    def close(self):
+        self.conn.commit()
+        self.conn.close()
+
+def main():
+    # checks if file already exists
+    if os.path.isfile("world.db"):
+        s = _Simulator()
+        atexit.register(s.close())
+        while s.isFileExist() and s.isTasksNotEmpty():
+            tasks = s.getAllTasks()
+            for task in tasks:
+                if s.isTaskOccupied(task[0]):
+                    s.reduce(task[0])
+                elif s.isWorkerIdle(task[1]):
+                    s.assign(task[0])
+            finishedTasks = s.getAllFinishedTasks()
+            for task in finishedTasks:
+                s.finishTask(task[0])
+
+if __name__ == '__main__':
+    main()
 
 
 
