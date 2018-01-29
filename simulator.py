@@ -38,7 +38,12 @@ class _Simulator:
     def deleteTask(self,taskId):
         self.conn.execute("DELETE FROM tasks WHERE id=(?)",[taskId])
 
-    def reduce(self,taskid):
+# assume there is more then one step left for task, assume worker in working on task
+    def reduce(self,taskid, workerId):
+# assume worker is idle
+    def assign(self, taskName):
+# assume 0 steps left for task
+    def finishTask(self, taskName):
 
 
 
