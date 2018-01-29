@@ -61,7 +61,7 @@ class _Simulator:
                         """, (taskid,))
         taskName = self.cursor.fetchone()
 
-        print(workerName[0]+" is busy "+taskName[0])
+        print(workerName[0]+" is busy "+taskName[0]+"...")
 
 # assume worker is idle
     def assign(self, taskid,workerid):
@@ -88,7 +88,6 @@ class _Simulator:
                                 """, (workerId[0],))
         workerName = self.cursor.fetchone()
         print(workerName[0]+" says: All Done!")
-        print(taskid)
         self.occupiedTasks.remove(taskid)
 
 
