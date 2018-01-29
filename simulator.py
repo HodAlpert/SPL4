@@ -74,7 +74,7 @@ class _Simulator:
                         SELECT name FROM workers WHERE id=(?)
                         """, (workerid,))
         workerName = self.cursor.fetchone()
-
+        self.updateWorkerStatus(workerid, "busy")
         print(workerName[0] + ' says: work work')
 
 # assume 0 steps left for task
