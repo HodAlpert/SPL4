@@ -45,14 +45,14 @@ class _Simulator:
         self.cursor.execute("""
                         SELECT worker_id FROM tasks WHERE id=(?)
                         """, (taskid,))
-        workerId = self.cursor.fetchone()
+        workerId = self.cursor.fetchone()[0]
         # get current time_to_make of the task
         self.cursor.execute("""
                                 SELECT time_to_make FROM tasks WHERE id=(?)
                                 """, (taskid,))
         time_to_make = self.cursor.fetchone()
         # reduce time_to_make by one
-        self.conn.execute("UPDATE workers SET time_to_make=(?) WHERE id=(?)", (time_to_make-1, workerId))
+        self.conn.execute("UPDATE tasks SET time_to_make=(?) WHERE id=(?)", (time_to_make[0]-1, workerId))
 
         # get worker name
         self.cursor.execute("""
@@ -64,7 +64,7 @@ class _Simulator:
                         """, (taskid,))
         taskName = self.cursor.fetchone()
 
-        print(workerName+" is busy "+taskName)
+        print(workerName[0]+" is busy "+taskName[0])
 
 # assume worker is idle
     def assign(self, taskid,workerid):
