@@ -25,7 +25,7 @@ class _Simulator:
         status=self.cursor.execute("""
             SELECT status FROM workers WHERE id=(?)
             """, [workerId]).fetchone()
-        answer = status == "idle"
+        answer = 'idle' in status
         return answer
 #returns all finished tasks
     def getAllFinishedTasks(self):
@@ -69,7 +69,7 @@ class _Simulator:
 # assume worker is idle
     def assign(self, taskid):
         #add taskid occupiedTasks
-        self.occupiedTasks.append(self,taskid)
+        self.occupiedTasks.append(taskid)
 
         self.cursor.execute("""
                                 SELECT worker_id FROM tasks WHERE id=(?)
