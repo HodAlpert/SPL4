@@ -34,67 +34,62 @@ class _Simulator:
                 """).fetchall()
 # update worker status
     def updateWorkerStatus(self,workerId, status):
-        self.conn.execute("UPDATE workers SET status=(?) WHERE id=(?)",[status,workerId])
+        self.conn.execute("UPDATE workers SET status=(?) WHERE id=(?)", [status, workerId])
 
     def deleteTask(self,taskId):
-        self.conn.execute("DELETE FROM tasks WHERE id=(?)",[taskId])
+        self.conn.execute("DELETE FROM tasks WHERE id=(?)", [taskId])
 
 # assume there is more then one step left for task, assume worker in working on task
     def reduce(self,taskid):
         # get the worker of this task
         self.cursor.execute("""
                         SELECT worker_id FROM tasks WHERE id=(?)
-                        """, (taskid))
-        workerId = self.cursor.fetch()
+                        """, (taskid,))
+        workerId = self.cursor.fetchone()
         # get current time_to_make of the task
         self.cursor.execute("""
                                 SELECT time_to_make FROM tasks WHERE id=(?)
-                                """, (taskid))
-        time_to_make = self.cursor.fetch()
+                                """, (taskid,))
+        time_to_make = self.cursor.fetchone()
         # reduce time_to_make by one
         self.conn.execute("UPDATE workers SET time_to_make=(?) WHERE id=(?)", (time_to_make-1, workerId))
 
         # get worker name
         self.cursor.execute("""
                                SELECT name FROM workers WHERE id=(?)
-                               """, (workerId))
-        workerName = self.cursor.fetch()
+                               """, (workerId,))
+        workerName = self.cursor.fetchone()
         self.cursor.execute("""
                         SELECT task_name FROM tasks WHERE id=(?)
-                        """, (taskid))
-        taskName = self.cursor.fetch()
+                        """, (taskid,))
+        taskName = self.cursor.fetchone()
 
         print(workerName+" is busy "+taskName)
 
 # assume worker is idle
-    def assign(self, taskid):
+    def assign(self, taskid,workerid):
         #add taskid occupiedTasks
         self.occupiedTasks.append(taskid)
-
-        self.cursor.execute("""
-                                SELECT worker_id FROM tasks WHERE id=(?)
-                                """, (taskid))
-        workerId = self.cursor.fetch()
         self.cursor.execute("""
                         SELECT name FROM workers WHERE id=(?)
-                        """, (workerId))
-        workerName = self.cursor.fetch()
+                        """, (workerid,))
+        workerName = self.cursor.fetchone()
 
-        print(workerName+" says: work work")
+        print(workerName[0] + ' says: work work')
 
 # assume 0 steps left for task
     def finishTask(self, taskid):
         self.cursor.execute("""
                         SELECT worker_id FROM tasks WHERE id=(?)
-                        """, (taskid))
-        workerId = self.cursor.fetch()
-        self.updateWorkerStatus(self,workerId,"idle")
-        self.deleteTask(self,taskid)
+                        """, (taskid,))
+        workerId = self.cursor.fetchone()
+        self.updateWorkerStatus(workerId,"idle")
+        self.deleteTask(taskid)
 
         self.cursor.execute("""
                                 SELECT name FROM workers WHERE id=(?)
-                                """, (workerId))
-        workerName = self.cursor.fetch()
+                                """, (workerId,))
+        workerName = self.cursor.fetchone()
         print(workerName+" says: All Done!")
 
 
@@ -115,7 +110,7 @@ def main():
                 if s.isTaskOccupied(task[0]):
                     s.reduce(task[0])
                 elif s.isWorkerIdle(task[1]):
-                    s.assign(task[0])
+                    s.assign(task[0], task[1])
             finishedTasks = s.getAllFinishedTasks()
             for task in finishedTasks:
                 s.finishTask(task[0])
