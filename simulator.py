@@ -80,7 +80,7 @@ class _Simulator:
                         SELECT worker_id FROM tasks WHERE id=(?)
                         """, (taskid,))
         workerId = self.cursor.fetchone()
-        self.updateWorkerStatus(workerId[0],"idle")
+        self.updateWorkerStatus(workerId[0], "idle")
         self.deleteTask(taskid)
 
         self.cursor.execute("""

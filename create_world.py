@@ -5,9 +5,11 @@ import os
 def readFile(filename, cursor):
     taskId = 1
     filehandle = open(filename)
+    # add rows to world.db tables from input file line by line
     for line in filehandle:
         newLine = line.split(',')
         newLine[-1] = newLine[-1].replace('\n', '')
+        # add newLine to the correct table
         if newLine[0] == 'worker':
             cursor.execute("""INSERT INTO workers VALUES(?,?,?)""", (int(newLine[1]),newLine[2],'idle'))
         elif len(newLine) == 2:
@@ -30,25 +32,10 @@ def createDB():
             cursor.execute("CREATE TABLE tasks(id INTEGER PRIMARY KEY, task_name TEXT NOT NULL,worker_id INTEGER REFERENCES workers(id),time_to_make INTEGER NOT NULL,resource_name TEXT NOT NULL,resource_amount INTEGER NOT NULL)")
             filename = os.path.abspath(os.path.realpath(sys.argv[1]))
             readFile(filename, cursor)
-
-            # cursor.execute("SELECT * FROM workers")
-            # workerslist = cursor.fetchall()
-            # print("All workers as list:")
-            # print(workerslist)
-            # print("-------------------------------")
-            # cursor.execute("SELECT * FROM resources")
-            # resourceslist = cursor.fetchall()
-            # print("All resources as list:")
-            # print(resourceslist)
-            # print("-------------------------------")
-            # cursor.execute("SELECT * FROM tasks")
-            # taskslist = cursor.fetchall()
-            # print("All tasks as list:")
-            # print(taskslist)
-            # print("-------------------------------")
+    # commit and close connection to world.db
     dbcon.commit()
     dbcon.close()
-    # os.remove('world.db')
+
 
 if __name__ == '__main__':
     createDB()
