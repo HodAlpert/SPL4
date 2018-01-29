@@ -1,6 +1,5 @@
 import os
 import sqlite3
-import atexit
 
 
 class _Simulator:
@@ -100,8 +99,7 @@ class _Simulator:
 def main():
     # checks if file already exists
     if os.path.isfile("world.db"):
-        s = _Simulator()
-        # atexit.register(s.close())
+        s = _Simulator()#ininiating simulator
         while s.isFileExist() and s.isTasksNotEmpty():
             tasks = s.getAllTasks()
             for task in tasks:
@@ -112,7 +110,7 @@ def main():
             finishedTasks = s.getAllFinishedTasks()
             for task in finishedTasks:
                 s.finishTask(task[0])
-        os.remove("world.db")
+        s.close()
 
 if __name__ == '__main__':
     main()
