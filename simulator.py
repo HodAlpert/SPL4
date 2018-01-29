@@ -7,14 +7,15 @@ class _Simulator:
     def __init__(self):
          self.conn=sqlite3.connect("world.db")
          self.occupiedTasks = []
-         self.cursor = self.conn().cursor()
+         self.cursor = self.conn.cursor()
 #checks if sql file exists
     def isFileExist(self):
-        return os.path.isfile("world.db")
+        answer = os.path.isfile("world.db")
+        return answer
 #gets all tasks in tasks table
     def getAllTasks(self):
         return self.cursor.execute("""
-        SELECT id, task_name, worker_id, time_to_make FROM tasks
+        SELECT id, worker_id, time_to_make FROM tasks
         """).fetchall()
 # checks if task is currently performed by worker
     def isTaskOccupied(self, taskid):
@@ -24,7 +25,8 @@ class _Simulator:
         status=self.cursor.execute("""
             SELECT status FROM workers WHERE id=(?)
             """, [workerId]).fetchone()
-        return status == "idle"
+        answer = status == "idle"
+        return answer
 #returns all finished tasks
     def getAllFinishedTasks(self):
         return self.cursor.execute("""
@@ -97,7 +99,7 @@ class _Simulator:
 
 
     def isTasksNotEmpty(self):
-        return len(self.occupiedTasks)!=0
+        return len(self.getAllTasks())!=0
     def close(self):
         self.conn.commit()
         self.conn.close()
@@ -106,7 +108,7 @@ def main():
     # checks if file already exists
     if os.path.isfile("world.db"):
         s = _Simulator()
-        atexit.register(s.close())
+        # atexit.register(s.close())
         while s.isFileExist() and s.isTasksNotEmpty():
             tasks = s.getAllTasks()
             for task in tasks:
@@ -117,6 +119,7 @@ def main():
             finishedTasks = s.getAllFinishedTasks()
             for task in finishedTasks:
                 s.finishTask(task[0])
+        os.remove("world.db")
 
 if __name__ == '__main__':
     main()
